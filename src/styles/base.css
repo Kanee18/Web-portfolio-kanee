@@ -1,0 +1,312 @@
+/* ───────────────────────────── Tokens ───────────────────────────── */
+:root {
+  --bg: #030409;
+  --bg-2: #070912;
+  --ink: #eeebf4;
+  --ink-2: rgba(238, 235, 244, 0.68);
+  --ink-3: rgba(238, 235, 244, 0.4);
+  --ink-4: rgba(238, 235, 244, 0.18);
+  --line: rgba(238, 235, 244, 0.12);
+  --amber: #ffb46a;
+  --amber-2: #ff8a3d;
+  --ion: #9cc9ff;
+  --rose: #ff8fb4;
+
+  --font-display: 'Archivo Variable', 'Archivo', system-ui, sans-serif;
+  --font-body: 'Archivo Variable', 'Archivo', system-ui, sans-serif;
+  --font-serif: 'Instrument Serif', 'Times New Roman', serif;
+  --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.76, 0, 0.24, 1);
+  --gutter: clamp(18px, 2.6vw, 44px);
+  --header-h: 84px;
+  --vh: 1vh;
+}
+
+/* ───────────────────────────── Reset ───────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  background: var(--bg);
+  color-scheme: dark;
+  /* animated/oversized type must never widen the mobile layout viewport */
+  overflow-x: clip;
+}
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-stretch: 100%;
+  font-size: 16px;
+  line-height: 1.55;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
+}
+img,
+svg,
+canvas {
+  display: block;
+  max-width: 100%;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+h1,
+h2,
+h3,
+p,
+ul,
+ol,
+dl,
+dd {
+  margin: 0;
+  padding: 0;
+}
+ul,
+ol {
+  list-style: none;
+}
+em {
+  font-style: normal;
+}
+::selection {
+  background: rgba(255, 180, 106, 0.85);
+  color: #0b0703;
+}
+:focus-visible {
+  outline: 1.5px solid rgba(255, 255, 255, 0.85);
+  outline-offset: 4px;
+  border-radius: 6px;
+}
+
+/* ───────────────────────────── Utilities ───────────────────────────── */
+.sr-only {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.skip-link {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 2000;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--bg);
+  font: 500 13px/1 var(--font-body);
+  transform: translateY(-200%);
+  transition: transform 0.3s var(--ease-out);
+}
+.skip-link:focus {
+  transform: none;
+}
+.container {
+  width: 100%;
+  padding-inline: var(--gutter);
+  margin-inline: auto;
+}
+.label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.4;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  font-weight: 450;
+}
+.label--dim {
+  color: var(--ink-3);
+}
+
+/* Serif accent used across headings / statements */
+.hero__tagline em,
+.about__statement em,
+.work__title em,
+.skills__title em,
+.journey__title em {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-stretch: 100%;
+  letter-spacing: -0.01em;
+}
+
+/* SplitText helpers */
+.split-line {
+  display: block;
+}
+.split-mask {
+  overflow: clip;
+  padding-block: 0.08em;
+  margin-block: -0.08em;
+}
+
+/* ───────────────────────────── Canvas & atmosphere ───────────────────────────── */
+.webgl {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100lvh;
+  z-index: 0;
+  outline: none;
+}
+.vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 80% at 50% 50%, transparent 55%, rgba(2, 3, 8, 0.55) 100%),
+    linear-gradient(180deg, rgba(3, 4, 9, 0.35) 0%, transparent 14%, transparent 86%, rgba(3, 4, 9, 0.4) 100%);
+}
+.main {
+  position: relative;
+  z-index: 2;
+}
+
+/* Section heads: "(01) ——— Origin" */
+.section-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.section-head__index {
+  color: var(--amber);
+}
+.section-head__line {
+  width: 64px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.45;
+  transform-origin: left center;
+}
+.section-head--center {
+  justify-content: center;
+}
+
+.sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: clip;
+}
+.section {
+  position: relative;
+}
+
+.link-underline {
+  position: relative;
+  display: inline-block;
+  padding-block: 4px;
+}
+.link-underline::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right center;
+  transition: transform 0.6s var(--ease-out);
+}
+.link-underline:hover::after,
+.link-underline:focus-visible::after {
+  transform: scaleX(1);
+  transform-origin: left center;
+}
+
+.pulse-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 10px;
+  border-radius: 50%;
+  background: #7dffb2;
+  box-shadow: 0 0 0 0 rgba(125, 255, 178, 0.6);
+  animation: pulse 2.2s infinite;
+  vertical-align: 1px;
+}
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(125, 255, 178, 0.55);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(125, 255, 178, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(125, 255, 178, 0);
+  }
+}
+
+/* No WebGL: keep the mood with a static CSS nebula */
+html.no-webgl body {
+  background:
+    radial-gradient(70% 55% at 72% 18%, rgba(98, 66, 170, 0.28), transparent 62%),
+    radial-gradient(55% 45% at 18% 82%, rgba(255, 150, 80, 0.12), transparent 60%),
+    radial-gradient(40% 35% at 50% 50%, rgba(60, 110, 200, 0.1), transparent 70%),
+    var(--bg);
+  background-attachment: fixed;
+}
+html.no-webgl .hud {
+  display: none;
+}
+
+/* Hide custom-cursor system cursor only on fine pointers once JS opts in */
+html.has-cursor,
+html.has-cursor a,
+html.has-cursor button {
+  cursor: none;
+}
+
+/* Loading: block interaction with content until the opening sequence ends */
+html.is-loading .main,
+html.is-loading .header,
+html.is-loading .hud {
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

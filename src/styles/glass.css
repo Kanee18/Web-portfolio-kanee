@@ -1,0 +1,277 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   LIQUID GLASS
+   Layers (back → front):
+     backdrop-filter   real refraction (SVG displacement, Chromium) or blur
+     background        faint tint
+     box-shadow        specular edges, inner caustics, contact shadow
+     ::before          conic rim light that rotates toward the pointer
+     ::after           pointer-tracking sheen
+     .lg__ripple       press droplets
+     label / icon
+   JS (src/ui/liquidGlass.js) drives --lg-mx/--lg-my/--lg-angle/--lg-glow and
+   the jelly physics (squash, stretch, magnetism).
+   NOTE: never animate opacity/filter on an *ancestor* of a .lg element —
+   that creates a backdrop root and the glass would stop seeing the scene.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.lg {
+  --lg-radius: 999px;
+  --lg-tint: rgba(255, 255, 255, 0.035);
+  /* static specular: light catching the upper half of the lens */
+  --lg-shine: linear-gradient(180deg, rgba(255, 255, 255, 0.11) 0%, rgba(255, 255, 255, 0.035) 38%, rgba(255, 255, 255, 0) 56%);
+  --lg-blur: 7px;
+  --lg-sat: 1.65;
+  --lg-mx: 50%;
+  --lg-my: 50%;
+  --lg-angle: 130deg;
+  --lg-glow: 0;
+  --lg-rim: 0.85;
+  position: relative;
+  isolation: isolate;
+  border-radius: var(--lg-radius);
+  background: var(--lg-shine), var(--lg-tint);
+  -webkit-backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-sat)) brightness(1.08);
+  backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-sat)) brightness(1.08);
+  box-shadow:
+    inset 0 1px 0.5px rgba(255, 255, 255, 0.46),
+    inset 0 -1px 0.5px rgba(255, 255, 255, 0.14),
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.12),
+    inset 0 12px 22px -16px rgba(255, 255, 255, 0.32),
+    /* caustic: light focused through the body pools along the lower rim */
+    inset 0 -10px 18px -12px rgba(170, 205, 255, 0.34),
+    inset 0 -2px 6px -2px rgba(255, 255, 255, 0.12),
+    0 14px 34px -14px rgba(0, 0, 0, 0.7),
+    0 2px 4px rgba(0, 0, 0, 0.28);
+  transform: translateZ(0);
+}
+
+/* rim light — a conic gradient masked to a 1px ring; rotates toward the pointer */
+.lg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  padding: 1px;
+  border-radius: inherit;
+  pointer-events: none;
+  background: conic-gradient(
+    from var(--lg-angle),
+    rgba(255, 255, 255, 0.95),
+    rgba(255, 255, 255, 0.14) 12%,
+    rgba(255, 255, 255, 0) 26%,
+    rgba(255, 255, 255, 0.05) 40%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0.05) 60%,
+    rgba(255, 255, 255, 0) 74%,
+    rgba(255, 255, 255, 0.14) 88%,
+    rgba(255, 255, 255, 0.95)
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+  opacity: var(--lg-rim);
+}
+
+/* pointer sheen */
+.lg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    radial-gradient(140px circle at var(--lg-mx) var(--lg-my), rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0) 62%),
+    radial-gradient(60px circle at var(--lg-mx) var(--lg-my), rgba(255, 236, 214, 0.18), rgba(255, 255, 255, 0) 70%);
+  opacity: var(--lg-glow);
+  mix-blend-mode: screen;
+}
+
+.lg__ripple {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.38) 0%, rgba(255, 255, 255, 0.08) 45%, rgba(255, 255, 255, 0) 70%);
+  mix-blend-mode: screen;
+}
+.lg__clip {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ───────────────────────────── Buttons ───────────────────────────── */
+.lg-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  height: 56px;
+  padding: 0 28px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.005em;
+  line-height: 1;
+  color: var(--ink);
+  white-space: nowrap;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  will-change: transform;
+}
+.lg-btn__label,
+.lg-btn__icon {
+  position: relative;
+  z-index: 2;
+  display: inline-block;
+  pointer-events: none;
+}
+.lg-btn__label {
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.35);
+}
+.lg-btn__icon {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.6s var(--ease-out);
+}
+.lg-btn:hover .lg-btn__icon {
+  transform: translateX(3px);
+}
+.lg-btn:hover .lg-btn__icon--up {
+  transform: translateY(-3px);
+}
+
+.lg-btn--primary {
+  --lg-tint: linear-gradient(180deg, rgba(255, 196, 140, 0.2), rgba(255, 140, 70, 0.08));
+  --lg-sat: 1.9;
+  color: #fff6ec;
+  box-shadow:
+    inset 0 1px 0.5px rgba(255, 240, 220, 0.6),
+    inset 0 -1px 0.5px rgba(255, 200, 150, 0.2),
+    inset 0 0 0 0.5px rgba(255, 220, 190, 0.2),
+    inset 0 14px 22px -16px rgba(255, 236, 214, 0.5),
+    inset 0 -12px 20px -12px rgba(255, 150, 80, 0.55),
+    inset 0 -2px 6px -2px rgba(255, 220, 180, 0.18),
+    0 16px 40px -14px rgba(255, 120, 40, 0.35),
+    0 2px 4px rgba(0, 0, 0, 0.3);
+}
+.lg-btn--sm {
+  height: 44px;
+  padding: 0 20px;
+  font-size: 13.5px;
+  gap: 8px;
+}
+.lg-btn--sm .lg-btn__icon {
+  width: 15px;
+  height: 15px;
+}
+.lg-btn--xl {
+  height: clamp(64px, 7vw, 84px);
+  padding: 0 clamp(26px, 3.2vw, 44px);
+  font-size: clamp(16px, 1.55vw, 22px);
+  gap: 16px;
+}
+.lg-btn--icon {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+}
+
+/* ───────────────────────────── Chips ───────────────────────────── */
+.chip {
+  --lg-blur: 10px;
+  --lg-tint: rgba(255, 255, 255, 0.03);
+  --lg-rim: 0.55;
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 14px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  box-shadow:
+    inset 0 1px 0.5px rgba(255, 255, 255, 0.28),
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.1),
+    0 6px 16px -10px rgba(0, 0, 0, 0.6);
+}
+
+/* ───────────────────────────── Nav pill ───────────────────────────── */
+.nav-wrap {
+  position: relative;
+}
+.nav {
+  --lg-tint: rgba(10, 12, 22, 0.22);
+  --lg-blur: 12px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 50px;
+  padding: 5px;
+}
+.nav__link {
+  position: relative;
+  z-index: 2;
+  display: block;
+  width: 88px;
+  text-align: center;
+  padding: 0;
+  line-height: 40px;
+  font-size: 13.5px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--ink-2);
+  border-radius: 999px;
+  transition: color 0.4s var(--ease-out);
+}
+.nav__link:hover,
+.nav__link.is-active {
+  color: var(--ink);
+}
+.nav__blob {
+  --lg-tint: rgba(255, 255, 255, 0.07);
+  --lg-blur: 0.5px;
+  --lg-sat: 1.3;
+  --lg-rim: 1;
+  position: absolute;
+  z-index: 3;
+  top: 5px;
+  left: 0;
+  width: 80px;
+  height: 40px;
+  pointer-events: none;
+  opacity: 0;
+  box-shadow:
+    inset 0 1px 0.5px rgba(255, 255, 255, 0.55),
+    inset 0 -1px 0.5px rgba(255, 255, 255, 0.18),
+    inset 0 0 12px rgba(255, 255, 255, 0.08),
+    0 6px 18px -8px rgba(0, 0, 0, 0.55);
+}
+
+/* Focus states keep the glass silhouette */
+.lg-btn:focus-visible {
+  outline: 1.5px solid rgba(255, 255, 255, 0.9);
+  outline-offset: 4px;
+  border-radius: var(--lg-radius);
+}

@@ -1,0 +1,9 @@
+node_modules
+dist
+*.log
+.DS_Store
+
+# keep the full-length source track out of git (148 MB > GitHub's 100 MB limit);
+# only the optimised web loop is committed
+src/BGM/*
+!src/BGM/cosmos-bgm.mp3
